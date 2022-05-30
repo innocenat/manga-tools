@@ -86,7 +86,7 @@ def merge_image(f0, f1, direction):
 
 def main(argv):
     if len(argv) < 4:
-        print('Usage: python merge-spread.py <ltr|rtl> <inputdirectory> <outputfile>')
+        print('Usage: python merge_spread.py <ltr|rtl> <inputdirectory> <outputfile>')
         return
 
     if argv[1] == 'ltr':
@@ -94,7 +94,7 @@ def main(argv):
     elif argv[1] == 'rtl':
         direction = -1
     else:
-        print('Usage: python merge-spread.py <ltr|rtl> <inputdirectory> <outputfile>')
+        print('Usage: python merge_spread.py <ltr|rtl> <inputdirectory> <outputfile>')
         return
 
     input_dir = glob.escape(argv[2])

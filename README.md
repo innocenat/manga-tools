@@ -37,3 +37,12 @@ The AZW3 reader used [KindleUnpack](https://github.com/kevinhendricks/KindleUnpa
 tool to extract images from AZW3, with code located in `kf8comic.py`.
 It basically just run kindleunpack into tmp directory and read the 
 EPUB structure generated.
+
+
+### kf8pdf.py
+
+Just extract and process AZW3 manga as PDF file.
+
+Note that in Amazon Japan Store, a lot of fixed-layout books
+are also published as AZW3 manga, so this help to read those books
+too.
