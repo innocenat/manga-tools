@@ -12,21 +12,22 @@ DEFAULT_DPM = DEFAULT_DPI / 25.4
 
 
 def main(argv):
-    if len(argv) < 3:
-        print('Usage: python kf8pdf.py <ltr|rtl> <inputfile> [<outputfile>]')
+    if len(argv) < 2:
+        print('Usage: python kf8pdf.py <inputfile> [<outputfile>]')
         return
 
-    rtl = argv[1] == 'rtl'
-
-    input_file = argv[2]
-    if len(argv) > 3:
-        output = argv[3]
+    input_file = argv[1]
+    if len(argv) > 2:
+        output = argv[2]
     else:
         output = os.path.splitext(input_file)[0] + '.pdf'
 
     # Read AZW3 file
-    flat_toc, images, tmpdir = read_azw3(input_file)
+    flat_toc, images, tmpdir, rtl = read_azw3(input_file)
     toc_map = {x[0]: x[1] for x in flat_toc}
+
+    if rtl:
+        print('Creating PDF using RTL order')
 
     # Create PDF
     pdf = FPDF()

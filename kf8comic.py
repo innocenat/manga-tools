@@ -27,6 +27,13 @@ def read_metadata(path):
         href = item.get('href')
         spine_list.append(href)
 
+    # Read direction
+    rtl = False
+    for spine in root.findall('.//opf:spine', xmlns):
+        if spine.get('page-progression-direction') == 'rtl':
+            rtl = True
+
+
     xmlns = {
         'xhtml': 'http://www.w3.org/1999/xhtml',
         'svg': 'http://www.w3.org/2000/svg',
@@ -39,32 +46,54 @@ def read_metadata(path):
         page_path = os.path.join(path, 'mobi8', 'OEBPS', page)
         tree = ET.parse(page_path)
         root = tree.getroot()
+        found_image = False
         for img in root.findall('.//svg:image', xmlns):
             src = img.get('{{{}}}href'.format(xmlns['xlink']))
             src = os.path.join(os.path.dirname(page_path), src)
             images_list.append((page, src))
+            found_image = True
+        if not found_image:
+            # Find using img tag instead
+            for img in root.findall('.//xhtml:img', xmlns):
+                src = img.get('src')
+                src = os.path.join(os.path.dirname(page_path), src)
+                images_list.append((page, src))
+                found_image = True
+        if not found_image:
+            # Find using html img tag instead
+            for img in root.findall('.//img', xmlns):
+                src = img.get('src')
+                src = os.path.join(os.path.dirname(page_path), src)
+                images_list.append((page, src))
+                found_image = True
 
     # Table of content
     toc = []
-    ncx = os.path.join(path, 'mobi8', 'OEBPS', 'toc.ncx')
-    tree = ET.parse(ncx)
-    root = tree.getroot()
+    try:
+        ncx = os.path.join(path, 'mobi8', 'OEBPS', 'toc.ncx')
+        tree = ET.parse(ncx)
+        root = tree.getroot()
 
-    xmlns = {
-        'ncx': 'http://www.daisy.org/z3986/2005/ncx/',
-    }
+        xmlns = {
+            'ncx': 'http://www.daisy.org/z3986/2005/ncx/',
+        }
 
-    for navpoint in root.findall('./ncx:navMap/ncx:navPoint', xmlns):
-        title = navpoint.find('./ncx:navLabel/ncx:text', xmlns).text
-        href = navpoint.find('./ncx:content', xmlns).get('src')
-        order = navpoint.get('playOrder')
-        toc.append((title, href, order))
+        for navpoint in root.findall('./ncx:navMap/ncx:navPoint', xmlns):
+            title = navpoint.find('./ncx:navLabel/ncx:text', xmlns).text
+            href = navpoint.find('./ncx:content', xmlns).get('src')
+            order = navpoint.get('playOrder')
+            toc.append((title, href, order))
+    except:
+        pass
 
-    return title, images_list, toc
+    return title, images_list, toc, rtl
 
 
 def make_flat_toc(images_list, toc):
     toc.sort(key=lambda x: int(x[2]))
+
+    if len(toc) == 0:
+        return []
 
     flat_toc = []
     toc_idx = 0
@@ -85,10 +114,10 @@ def make_flat_toc(images_list, toc):
 def read_azw3(filepath):
     tmpdir = tempfile.TemporaryDirectory()
     unpackBook(filepath, tmpdir.name)
-    title, images_list, toc = read_metadata(tmpdir.name)
+    title, images_list, toc, rtl = read_metadata(tmpdir.name)
     flat_toc = make_flat_toc(images_list, toc)
 
-    return flat_toc, [x[1] for x in images_list], tmpdir
+    return flat_toc, [x[1] for x in images_list], tmpdir, rtl
 
 
 if __name__ == '__main__':

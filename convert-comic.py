@@ -148,7 +148,7 @@ def zip_generator(input_zip):
 
 
 def azw3_generator(input_azw3):
-    flat_toc, images, tmpdir = read_azw3(input_azw3)
+    flat_toc, images, tmpdir, rtl = read_azw3(input_azw3)
 
     print('AZW3 Table of Content:')
     for x in flat_toc:
