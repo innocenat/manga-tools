@@ -130,7 +130,8 @@ def zip_generator(input_zip):
     images_file = []
     with zipfile.ZipFile(input_zip, 'r') as zip_ref:
         for info in zip_ref.infolist():
-            if info.filename.endswith('.jpg') or info.filename.endswith('.jpeg') or info.filename.endswith('.png'):
+            basename = os.path.basename(info.filename)
+            if basename[0] != '.' and (info.filename.endswith('.jpg') or info.filename.endswith('.jpeg') or info.filename.endswith('.png')):
                 images_file.append(info.filename)
 
         # Sort image file
@@ -141,10 +142,14 @@ def zip_generator(input_zip):
 
         # Process image file
         for i, file in enumerate(images_file):
-            image_blob = zip_ref.read(file)
-            image_io = io.BytesIO(image_blob)
-            image = Image.open(image_io)
-            yield i, image
+            try:
+                image_blob = zip_ref.read(file)
+                image_io = io.BytesIO(image_blob)
+                image = Image.open(image_io)
+                yield i, image
+            except:
+                print('Error: cannot open image ' + file)
+                raise
 
 
 def azw3_generator(input_azw3):

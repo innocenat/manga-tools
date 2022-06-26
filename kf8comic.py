@@ -1,14 +1,20 @@
 import tempfile
 import os
-import xml.etree.ElementTree as ET
+from lxml import etree
 
 from kindleunpack.kindleunpack import unpackBook
+
+
+def parse(file):
+    parser = etree.XMLParser(recover=True)
+    xml = etree.parse(file, parser=parser)
+    return xml
 
 
 def read_metadata(path):
     # Metadata
     metadata_path = os.path.join(path, 'mobi8', 'OEBPS', 'content.opf')
-    tree = ET.parse(metadata_path)
+    tree = parse(metadata_path)
     root = tree.getroot()
 
     xmlns = {
@@ -44,7 +50,7 @@ def read_metadata(path):
     images_list = []
     for page in spine_list:
         page_path = os.path.join(path, 'mobi8', 'OEBPS', page)
-        tree = ET.parse(page_path)
+        tree = parse(page_path)
         root = tree.getroot()
         found_image = False
         for img in root.findall('.//svg:image', xmlns):
@@ -71,7 +77,7 @@ def read_metadata(path):
     toc = []
     try:
         ncx = os.path.join(path, 'mobi8', 'OEBPS', 'toc.ncx')
-        tree = ET.parse(ncx)
+        tree = parse(ncx)
         root = tree.getroot()
 
         xmlns = {

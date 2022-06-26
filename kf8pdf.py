@@ -33,7 +33,7 @@ def main(argv):
     pdf = FPDF()
     pdf.set_display_mode('fullpage', 'two')
     pdf.set_margin(0)
-    pdf.viewer_preferences = ViewerPreferences(hide_toolbar=False, hide_menubar=True, fit_window=True)
+    pdf.viewer_preferences = ViewerPreferences(hide_toolbar=True, hide_menubar=False, fit_window=True)
 
     print('Creating PDF...')
 
