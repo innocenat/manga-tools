@@ -57,13 +57,48 @@ def contrast_gamma(image):
     return image
 
 
-# Process individual image (must be after double-spread is split)
+def detect_bounding_box(bound_image, a, b):
+    bound_image = bound_image.point(lambda x: 0 if x >= a and x <= b else 255)
+    bbox = bound_image.getbbox()
+    if bbox is not None:
+        min_margin = [0, 0]
+        max_margin = [int(0.1 * i + 0.5) for i in bound_image.size]
+        bbox = (
+            max(0, min(max_margin[0], bbox[0] - min_margin[0])),
+            max(0, min(max_margin[1], bbox[1] - min_margin[1])),
+            min(bound_image.size[0],
+                max(bound_image.size[0] - max_margin[0], bbox[2] + min_margin[0])),
+            min(bound_image.size[1],
+                max(bound_image.size[1] - max_margin[1], bbox[3] + min_margin[1])),
+        )
+        return bbox
+    else:
+        return None
+
+
+def crop_empty_border(image, bound_img):
+    bbox1 = detect_bounding_box(bound_img, 0, 16)
+    bbox2 = detect_bounding_box(bound_img, 235, 255)
+    if bbox1 is None and bbox2 is None:
+        return image
+    elif bbox1 is None:
+        return image.crop(bbox2)
+    elif bbox2 is None:
+        return image.crop(bbox1)
+    else:
+        return image.crop([max(bbox1[0], bbox2[0]), max(bbox1[1], bbox2[1]), min(bbox1[2], bbox2[2]), min(bbox1[3], bbox2[3])])
+
+
+# Process individual image (must be after a double-spread is splitted)
 def process_image_inner(image, d_width, d_height):
     # First, convert to floating point (greyscale)
     img = image.convert('F', dither=Image.FLOYDSTEINBERG)
 
+    # Then, crop
+    img = crop_empty_border(img, image.convert('L'))
+
     # Then, resize
-    new_width, new_height = calculate_image_size(image, d_width, d_height)
+    new_width, new_height = calculate_image_size(img, d_width, d_height)
     img = img.resize((new_width, new_height), Image.LANCZOS)
 
     # Then, apply gamma
